@@ -26,7 +26,12 @@ yarn-debug.log*
 yarn-error.log*
 
 # env
+.env
 .env*.local
+/backend/.env
+/backend/.env.local
+/backend/serviceAccount*.json
+**/serviceAccountKey.json
 
 # vercel
 .vercel

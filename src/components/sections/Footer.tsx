@@ -4,6 +4,7 @@ const footerLinks = [
   { href: "#features", label: "Features" },
   { href: "#pricing", label: "Pricing" },
   { href: "#how-it-works", label: "How it works" },
+  { href: "/shops", label: "Browse shops" },
   { href: "/login", label: "Login" },
   { href: "/signup", label: "Create Shop" },
 ];

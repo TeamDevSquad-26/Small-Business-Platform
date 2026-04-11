@@ -1,35 +1,56 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
-export default function LoginPage() {
+function safeInternalPath(raw: string | null): string | null {
+  if (!raw) return null;
+  try {
+    const p = decodeURIComponent(raw).trim();
+    if (!p.startsWith("/") || p.startsWith("//")) return null;
+    return p;
+  } catch {
+    return null;
+  }
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get("returnUrl");
   const { user, isReady, login } = useAuth();
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (isReady && user) router.replace("/dashboard");
-  }, [isReady, user, router]);
+    if (isReady && user) {
+      router.replace(safeInternalPath(returnUrl) ?? "/dashboard");
+    }
+  }, [isReady, user, router, returnUrl]);
 
   return (
     <AuthShell
-      title="Login"
-      subtitle="Apne Karobaar account mein dakhil hon."
+      title="Log in"
+      subtitle="Sign in to your Karobaar account."
     >
       <form
         className="space-y-4"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
+          setError("");
           const fd = new FormData(e.currentTarget);
           const email = String(fd.get("email") ?? "");
           const password = String(fd.get("password") ?? "");
-          login(email, password);
-          router.push("/dashboard");
+          const result = await login(email, password);
+          if (!result.ok) {
+            setError(result.message);
+            return;
+          }
+          router.push(safeInternalPath(returnUrl) ?? "/dashboard");
         }}
       >
         <Input
@@ -40,30 +61,52 @@ export default function LoginPage() {
           required
           autoComplete="email"
         />
-        <Input
-          label="Password"
-          name="password"
-          type="password"
-          placeholder="••••••••"
-          required
-          autoComplete="current-password"
-        />
+        <div className="space-y-1.5">
+          <Input
+            label="Password"
+            name="password"
+            type="password"
+            placeholder="••••••••"
+            required
+            autoComplete="current-password"
+            error={error}
+          />
+          <p className="text-right text-sm">
+            <Link
+              href="/forgot-email"
+              className="font-medium text-primary hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </p>
+        </div>
         <Button variant="primary" className="w-full !py-3" type="submit">
-          Login
+          Log in
         </Button>
         <p className="text-center text-sm text-muted">
-          Demo: koi bhi email + password — dashboard open ho jayega.
-        </p>
-        <p className="text-center text-sm text-muted">
-          Naya hain?{" "}
+          New here?{" "}
           <Link
             href="/signup"
             className="font-semibold text-primary hover:underline"
           >
-            Create Shop / Sign up
+            Create a shop / Sign up
           </Link>
         </p>
       </form>
     </AuthShell>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] items-center justify-center text-muted">
+          Loading…
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

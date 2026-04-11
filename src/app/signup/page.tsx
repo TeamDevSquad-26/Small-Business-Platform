@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/Input";
 export default function SignupPage() {
   const router = useRouter();
   const { user, isReady, signup } = useAuth();
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (isReady && user) router.replace("/dashboard");
@@ -18,24 +19,29 @@ export default function SignupPage() {
 
   return (
     <AuthShell
-      title="Account banayein"
-      subtitle="Signup ke baad apna shop setup karein."
+      title="Create your account"
+      subtitle="Sign up, then set up your shop."
     >
       <form
         className="space-y-4"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
+          setError("");
           const fd = new FormData(e.currentTarget);
-          signup({
+          const result = await signup({
             name: String(fd.get("name") ?? ""),
             email: String(fd.get("email") ?? ""),
             password: String(fd.get("password") ?? ""),
             shopName: String(fd.get("shopName") ?? ""),
           });
+          if (!result.ok) {
+            setError(result.message);
+            return;
+          }
           router.push("/dashboard");
         }}
       >
-        <Input label="Pura naam" name="name" placeholder="Aap ka naam" required />
+        <Input label="Full name" name="name" placeholder="Your name" required />
         <Input
           label="Email"
           name="email"
@@ -51,9 +57,10 @@ export default function SignupPage() {
           placeholder="••••••••"
           required
           autoComplete="new-password"
+          error={error}
         />
         <Input
-          label="Shop ka naam"
+          label="Shop name"
           name="shopName"
           placeholder="e.g. Lahore Bakers"
           required
@@ -62,12 +69,12 @@ export default function SignupPage() {
           Sign up &amp; continue
         </Button>
         <p className="text-center text-sm text-muted">
-          Pehle se account hai?{" "}
+          Already have an account?{" "}
           <Link
             href="/login"
             className="font-semibold text-primary hover:underline"
           >
-            Login
+            Log in
           </Link>
         </p>
       </form>

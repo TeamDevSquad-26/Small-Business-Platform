@@ -23,11 +23,11 @@ const variants: Record<Variant, string> = {
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", children, ...props }, ref) => {
+  ({ className, variant = "primary", children, type = "button", ...props }, ref) => {
     return (
       <motion.button
         ref={ref}
-        type="button"
+        type={type}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}

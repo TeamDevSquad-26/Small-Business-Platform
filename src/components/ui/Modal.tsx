@@ -53,7 +53,7 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
         >
           <button
             type="button"
-            aria-label="Band karein"
+            aria-label="Close"
             className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
             onClick={onClose}
           />
@@ -62,7 +62,7 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
             aria-modal="true"
             aria-labelledby={title ? "modal-title" : undefined}
             className={cn(
-              "relative z-10 w-full max-w-md rounded-2xl border border-gray-100 bg-surface p-6 shadow-soft-lg",
+              "relative z-10 flex max-h-[min(92vh,880px)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-gray-100 bg-surface shadow-soft-lg",
               className
             )}
             initial={{ opacity: 0, scale: 0.96, y: 16 }}
@@ -71,7 +71,7 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
             transition={{ type: "spring", stiffness: 380, damping: 32 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-4 flex items-start justify-between gap-3">
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-gray-100 px-6 py-4">
               {title ? (
                 <h2 id="modal-title" className="text-lg font-semibold text-ink">
                   {title}
@@ -87,7 +87,9 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
                 <X className="h-5 w-5" aria-hidden />
               </button>
             </div>
-            {children}
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 py-4">
+              {children}
+            </div>
           </motion.div>
         </motion.div>
       ) : null}

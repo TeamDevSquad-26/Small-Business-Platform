@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Play, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -75,6 +76,14 @@ export function Hero({ onViewDemo }: HeroProps) {
               View Demo
             </Button>
           </motion.div>
+          <motion.p variants={fadeSlideUp} className="text-center text-sm lg:text-left">
+            <Link
+              href="/shops"
+              className="font-medium text-secondary underline-offset-4 hover:underline"
+            >
+              Browse existing shops
+            </Link>
+          </motion.p>
         </div>
 
         <motion.div

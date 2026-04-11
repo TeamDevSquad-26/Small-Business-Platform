@@ -1,0 +1,87 @@
+rules_version = '2';
+
+/**
+ * Firestore security rules for Karobaar (Small Business Platform).
+ *
+ * Primary access is expected through the Express API (Firebase Admin bypasses rules).
+ * These rules protect direct client SDK access (web/mobile) to Firestore.
+ *
+ * Required: Firebase Authentication enabled (Email/Password).
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function userPath() {
+      return /databases/$(database)/documents/users/$(uid());
+    }
+
+    function userDocExists() {
+      return exists(userPath());
+    }
+
+    function userRole() {
+      return userDocExists() ? get(userPath()).data.role : null;
+    }
+
+    function isAdmin() {
+      return signedIn() && userDocExists() && userRole() == 'admin';
+    }
+
+    function isShopOwner(shopId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/shops/$(shopId))
+        && get(/databases/$(database)/documents/shops/$(shopId)).data.ownerId == uid();
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (userId == uid() || isAdmin());
+      allow create: if signedIn()
+        && userId == uid()
+        && request.resource.data.userId == uid()
+        && request.resource.data.role in ['customer', 'shop_owner'];
+      allow update: if signedIn() && (userId == uid() || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /shops/{shopId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.ownerId == uid();
+      allow update, delete: if signedIn() && (isShopOwner(shopId) || isAdmin());
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.shopId is string
+        && isShopOwner(request.resource.data.shopId);
+      allow update, delete: if signedIn()
+        && resource.data.shopId is string
+        && isShopOwner(resource.data.shopId);
+    }
+
+    match /orders/{orderId} {
+      allow read: if signedIn()
+        && (
+          resource.data.userId == uid()
+          || isShopOwner(resource.data.shopId)
+          || isAdmin()
+        );
+      allow create: if signedIn()
+        && request.resource.data.userId == uid()
+        && request.resource.data.status == 'pending';
+      allow update: if signedIn()
+        && (isShopOwner(resource.data.shopId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+  }
+}

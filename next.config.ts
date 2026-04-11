@@ -1,10 +1,31 @@
+import { loadEnvConfig } from "@next/env";
 import type { NextConfig } from "next";
 
+// Ensure `.env.local` is loaded when Next evaluates config (helps some Windows setups).
+loadEnvConfig(process.cwd());
+
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+    ],
+  },
   webpack: (config, { dev }) => {
-    // Windows low-memory issue: webpack filesystem cache pack can corrupt
-    // and cause routes-manifest ENOENT during dev.
-    if (dev) config.cache = false;
+    // Avoid persistent filesystem cache on Windows (can corrupt), but do NOT
+    // disable caching entirely — that makes dev rebuilds very slow and triggers
+    // ChunkLoadError / layout.js load timeouts in the browser.
+    if (dev) {
+      config.cache = { type: "memory" };
+    }
     return config;
   },
 };

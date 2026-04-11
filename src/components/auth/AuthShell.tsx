@@ -16,7 +16,7 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
           className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-muted transition-colors hover:text-ink"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
-          Wapas home
+          Back to home
         </Link>
 
         <div className="rounded-2xl border border-gray-100 bg-surface p-8 shadow-soft-lg">

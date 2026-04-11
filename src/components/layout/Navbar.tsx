@@ -6,23 +6,26 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { LinkButton } from "@/components/ui/LinkButton";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { href: "#features", label: "Features" },
   { href: "#pricing", label: "Pricing" },
+  { href: "/shops", label: "Shops" },
   { href: "/login", label: "Login" },
 ];
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const { user, isReady } = useAuth();
 
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-gray-200/80 bg-background/90 shadow-sm backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:h-[4.25rem] sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-[5rem] max-w-6xl items-center justify-between gap-3 px-4 sm:h-[5.5rem] sm:px-6 lg:px-8">
           <Link
             href="/"
-            className="inline-flex min-w-0 shrink-0 items-center bg-transparent transition-transform hover:scale-[1.01]"
+            className="inline-flex min-w-0 shrink-0 items-center rounded-lg bg-transparent px-1 py-1 transition-transform hover:scale-[1.02]"
           >
             <Image
               src="/karobaar-logo.png"
@@ -30,8 +33,8 @@ export function Navbar() {
               width={480}
               height={131}
               priority
-              sizes="(max-width: 768px) 160px 220px"
-              className="h-9 w-auto max-w-[min(200px,48vw)] bg-transparent object-contain object-left sm:h-10 md:max-w-[min(240px,28vw)]"
+              sizes="(max-width: 768px) 250px 340px"
+              className="h-[3.75rem] w-auto max-w-[min(320px,74vw)] bg-transparent object-contain object-left drop-shadow-[0_2px_6px_rgba(0,0,0,0.12)] sm:h-[4.25rem] md:max-w-[min(360px,40vw)]"
             />
           </Link>
 
@@ -39,7 +42,9 @@ export function Navbar() {
             className="hidden items-center gap-1 md:flex md:gap-2 lg:gap-3 xl:gap-5"
             aria-label="Main"
           >
-            {navLinks.map((item) => (
+            {navLinks
+              .filter((item) => !(user && item.href === "/login"))
+              .map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -48,6 +53,22 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
+            {isReady && user ? (
+              <>
+                <Link
+                  href="/my-orders"
+                  className="rounded-lg px-2 py-2 text-sm font-medium text-muted transition-colors hover:bg-gray-100 hover:text-ink lg:px-3"
+                >
+                  My orders
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="rounded-lg px-2 py-2 text-sm font-medium text-muted transition-colors hover:bg-gray-100 hover:text-ink lg:px-3"
+                >
+                  Dashboard
+                </Link>
+              </>
+            ) : null}
             <LinkButton
               href="/signup"
               variant="primary"
@@ -91,7 +112,7 @@ export function Navbar() {
           >
             <button
               type="button"
-              aria-label="Menu band karein"
+              aria-label="Close menu"
               className="absolute inset-0 bg-ink/30 backdrop-blur-[2px]"
               onClick={() => setOpen(false)}
             />
@@ -113,7 +134,9 @@ export function Navbar() {
                 </button>
               </div>
               <nav className="flex flex-1 flex-col gap-1 p-3" aria-label="Mobile">
-                {navLinks.map((item) => (
+                {navLinks
+                  .filter((item) => !(user && item.href === "/login"))
+                  .map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -123,6 +146,24 @@ export function Navbar() {
                     {item.label}
                   </Link>
                 ))}
+                {isReady && user ? (
+                  <>
+                    <Link
+                      href="/my-orders"
+                      className="rounded-xl px-3 py-3 text-sm font-medium text-ink hover:bg-gray-50"
+                      onClick={() => setOpen(false)}
+                    >
+                      My orders
+                    </Link>
+                    <Link
+                      href="/dashboard"
+                      className="rounded-xl px-3 py-3 text-sm font-medium text-ink hover:bg-gray-50"
+                      onClick={() => setOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                  </>
+                ) : null}
                 <div className="mt-3 border-t border-gray-100 pt-3">
                   <Link
                     href="/signup"

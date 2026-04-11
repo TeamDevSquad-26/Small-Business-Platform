@@ -11,6 +11,11 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1",
+    "firebase": "^12.12.0",
+    "firebase-admin": "^13.8.0",
     "framer-motion": "^11.18.0",
     "lucide-react": "^0.468.0",
     "next": "^15.1.0",
@@ -28,5 +33,19 @@
     "sharp": "^0.34.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.0"
-  }
+  },
+  "description": "A modern, scalable platform designed to empower small businesses by bringing them online in a unified ecosystem. This project enables multiple vendors to register, manage their products/services, and reach customers efficiently through a single platform.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TeamDevSquad-26/Small-Business-Platform.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/TeamDevSquad-26/Small-Business-Platform/issues"
+  },
+  "homepage": "https://github.com/TeamDevSquad-26/Small-Business-Platform#readme"
 }

@@ -12,7 +12,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Karobaar — Small Business Platform",
   description:
-    "Apna online shop minutes mein. Products, orders, aur growth — ek platform par.",
+    "Launch your online shop in minutes. Products, orders, and growth — on one platform.",
 };
 
 export default function RootLayout({
@@ -21,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ur" className={inter.variable}>
-      <body className="font-sans">
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <body className="font-sans" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

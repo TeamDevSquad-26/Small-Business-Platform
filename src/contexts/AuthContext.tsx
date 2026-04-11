@@ -8,8 +8,18 @@ import {
   useMemo,
   useState,
 } from "react";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from "firebase/auth";
+import { auth, isFirebaseConfigured } from "@/lib/firebase/client";
+import { getFirebaseConfigurationHelpMessage } from "@/lib/firebase/env";
 
 export type DemoUser = {
+  uid: string;
   name: string;
   email: string;
 };
@@ -17,91 +27,175 @@ export type DemoUser = {
 type AuthContextValue = {
   user: DemoUser | null;
   isReady: boolean;
-  login: (email: string, password: string) => void;
+  /** False when app sign-in config is incomplete */
+  isFirebaseConfigured: boolean;
+  /** Updates account display name (syncs across the app). */
+  updateDisplayName: (
+    name: string
+  ) => Promise<{ ok: true } | { ok: false; message: string }>;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<{ ok: true } | { ok: false; message: string }>;
   signup: (data: {
     name: string;
     email: string;
     password: string;
     shopName: string;
-  }) => void;
+  }) => Promise<{ ok: true } | { ok: false; message: string }>;
   logout: () => void;
 };
 
-const STORAGE_KEY = "karobaar_demo_auth";
-
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-function readStoredUser(): DemoUser | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as DemoUser;
-    if (!parsed?.email || !parsed?.name) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<DemoUser | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    setUser(readStoredUser());
-    setIsReady(true);
-  }, []);
+    if (!auth) {
+      setUser(null);
+      setIsReady(true);
+      return;
+    }
 
-  const persist = useCallback((u: DemoUser | null) => {
-    if (u) localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
-    else localStorage.removeItem(STORAGE_KEY);
-    setUser(u);
+    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+      if (!firebaseUser) {
+        setUser(null);
+        setIsReady(true);
+        return;
+      }
+      setUser({
+        uid: firebaseUser.uid,
+        name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
+        email: firebaseUser.email || "",
+      });
+      setIsReady(true);
+    });
+
+    return () => unsub();
   }, []);
 
   const login = useCallback(
-    (email: string, _password: string) => {
-      const local = email.trim().split("@")[0] ?? "user";
-      const pretty = local
-        .replace(/[._-]+/g, " ")
-        .split(" ")
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-        .join(" ");
-      persist({
-        name: pretty || "Demo User",
-        email: email.trim().toLowerCase(),
-      });
+    async (email: string, password: string) => {
+      if (!auth) {
+        return {
+          ok: false as const,
+          message: getFirebaseConfigurationHelpMessage(),
+        };
+      }
+
+      const normalizedEmail = email.trim().toLowerCase();
+      const rawPassword = password.trim();
+
+      if (!normalizedEmail || !rawPassword) {
+        return { ok: false as const, message: "Email and password are required." };
+      }
+
+      try {
+        await signInWithEmailAndPassword(auth, normalizedEmail, rawPassword);
+        return { ok: true as const };
+      } catch {
+        return {
+          ok: false as const,
+          message: "Couldn’t sign in. Check your email and password.",
+        };
+      }
     },
-    [persist]
+    []
   );
 
   const signup = useCallback(
-    (data: {
+    async (data: {
       name: string;
       email: string;
       password: string;
       shopName: string;
     }) => {
-      const name =
-        data.name.trim() ||
-        data.shopName.trim() ||
-        data.email.split("@")[0] ||
-        "Karobaar User";
-      persist({
-        name,
-        email: data.email.trim().toLowerCase(),
-      });
+      if (!auth) {
+        return {
+          ok: false as const,
+          message: getFirebaseConfigurationHelpMessage(),
+        };
+      }
+
+      const normalizedEmail = data.email.trim().toLowerCase();
+      const rawPassword = data.password.trim();
+      const shopName = data.shopName.trim();
+      const name = data.name.trim() || shopName || data.email.split("@")[0] || "User";
+
+      if (!normalizedEmail || !rawPassword || !shopName) {
+        return {
+          ok: false as const,
+          message: "Name, email, password, and shop name are required.",
+        };
+      }
+
+      if (rawPassword.length < 6) {
+        return {
+          ok: false as const,
+          message: "Password must be at least 6 characters.",
+        };
+      }
+
+      try {
+        const cred = await createUserWithEmailAndPassword(
+          auth,
+          normalizedEmail,
+          rawPassword
+        );
+        if (name) {
+          await updateProfile(cred.user, { displayName: name });
+        }
+        return { ok: true as const };
+      } catch {
+        return {
+          ok: false as const,
+          message:
+            "Couldn’t create your account. The email may be invalid or already in use.",
+        };
+      }
     },
-    [persist]
+    []
   );
 
   const logout = useCallback(() => {
-    persist(null);
-  }, [persist]);
+    if (auth) void signOut(auth);
+  }, []);
+
+  const updateDisplayName = useCallback(
+    async (name: string) => {
+      if (!auth?.currentUser) {
+        return { ok: false as const, message: "Not signed in." };
+      }
+      const trimmed = name.trim();
+      if (!trimmed) {
+        return { ok: false as const, message: "Name cannot be empty." };
+      }
+      try {
+        await updateProfile(auth.currentUser, { displayName: trimmed });
+        return { ok: true as const };
+      } catch {
+        return {
+          ok: false as const,
+          message: "Couldn’t update your name. Try again.",
+        };
+      }
+    },
+    []
+  );
 
   const value = useMemo(
-    () => ({ user, isReady, login, signup, logout }),
-    [user, isReady, login, signup, logout]
+    () => ({
+      user,
+      isReady,
+      isFirebaseConfigured,
+      updateDisplayName,
+      login,
+      signup,
+      logout,
+    }),
+    [user, isReady, updateDisplayName, login, signup, logout]
   );
 
   return (

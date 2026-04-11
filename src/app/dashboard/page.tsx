@@ -12,6 +12,7 @@ import {
   ListOrdered,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { DashboardShopCard } from "@/components/dashboard/DashboardShopCard";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Card } from "@/components/ui/Card";
 import { fadeSlideUp, staggerContainer } from "@/lib/motion";
@@ -71,8 +72,15 @@ export default function DashboardPage() {
             Welcome back, {firstName}!
           </h1>
           <p className="mt-1 text-muted">
-            Yahan aap apni shop ka snapshot dekhein — demo data hai.
+            Here’s a snapshot of your shop — sample data for now.
           </p>
+        </motion.div>
+
+        <motion.div variants={fadeSlideUp}>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
+            Your shop
+          </h2>
+          <DashboardShopCard />
         </motion.div>
 
         <motion.div
@@ -170,7 +178,7 @@ export default function DashboardPage() {
             <Card className="h-full">
               <h2 className="text-lg font-semibold text-ink">Quick actions</h2>
               <p className="mt-1 text-sm text-muted">
-                Sabse zyada use hone wale shortcuts
+                Your most-used shortcuts
               </p>
               <ul className="mt-5 space-y-2">
                 <li>
