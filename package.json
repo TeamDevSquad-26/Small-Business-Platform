@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run build:api && next dev",
+    "dev": "next dev",
     "build:api": "npm run build --prefix backend",
-    "build": "npm run build --prefix backend && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "process-logo": "node scripts/knockout-logo-bg.mjs"
