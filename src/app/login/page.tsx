@@ -22,13 +22,13 @@ function safeInternalPath(raw: string | null): string | null {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnUrl = searchParams.get("returnUrl");
+  const returnUrl = searchParams?.get("returnUrl");
   const { user, isReady, login } = useAuth();
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (isReady && user) {
-      router.replace(safeInternalPath(returnUrl) ?? "/dashboard");
+      router.replace(safeInternalPath(returnUrl ?? null) ?? "/dashboard");
     }
   }, [isReady, user, router, returnUrl]);
 
@@ -50,7 +50,7 @@ function LoginForm() {
             setError(result.message);
             return;
           }
-          router.push(safeInternalPath(returnUrl) ?? "/dashboard");
+          router.push(safeInternalPath(returnUrl ?? null) ?? "/dashboard");
         }}
       >
         <Input

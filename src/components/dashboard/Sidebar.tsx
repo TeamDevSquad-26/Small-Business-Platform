@@ -32,10 +32,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const NavInner = (
     <nav className="flex flex-1 flex-col gap-1 p-3" aria-label="Dashboard">
       {links.map(({ href, label, icon: Icon }) => {
+        const p = pathname ?? "";
         const active =
-          href === "/dashboard"
-            ? pathname === "/dashboard"
-            : pathname.startsWith(href);
+          href === "/dashboard" ? p === "/dashboard" : p.startsWith(href);
         return (
           <Link
             key={href}

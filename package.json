@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm run build:api && next dev",
+    "build:api": "npm run build --prefix backend",
     "build": "npm run build --prefix backend && next build",
     "start": "next start",
     "lint": "next lint",

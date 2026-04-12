@@ -24,7 +24,8 @@ type ShopDetail = {
 
 export function ShopDetailView() {
   const params = useParams();
-  const shopId = typeof params.shopId === "string" ? params.shopId : "";
+  const shopId =
+    params && typeof params.shopId === "string" ? params.shopId : "";
   const [shop, setShop] = useState<ShopDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
