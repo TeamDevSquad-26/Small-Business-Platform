@@ -30,7 +30,6 @@ import { fadeSlideUp, staggerContainer } from "@/lib/motion";
 import {
   getFirebaseCurrentUserWhenReady,
   getFirebaseDb,
-  isFirebaseConfigured,
 } from "@/lib/firebase/client";
 import type { OrderDoc, OrderStatus } from "@/lib/orders/types";
 import { cn } from "@/lib/cn";
