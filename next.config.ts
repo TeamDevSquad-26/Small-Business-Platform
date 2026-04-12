@@ -5,6 +5,7 @@ import type { NextConfig } from "next";
 loadEnvConfig(process.cwd());
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["firebase-admin", "express"],
   images: {
     remotePatterns: [
       {
