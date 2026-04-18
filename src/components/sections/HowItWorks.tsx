@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { UserPlus, Store, Boxes, TrendingUp } from "lucide-react";
 import { Card } from "@/components/ui/Card";
+import { SectionQuote } from "@/components/ui/SectionQuote";
 import { fadeSlideUp, staggerContainer } from "@/lib/motion";
 
 const steps = [
@@ -40,7 +41,7 @@ export function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="scroll-mt-20 border-y border-gray-100 bg-background px-4 py-20 sm:px-6 lg:px-8"
+      className="scroll-mt-20 border-y border-gray-100/80 bg-background px-4 py-20 sm:px-6 sm:py-24 lg:px-8"
     >
       <div ref={ref} className="mx-auto max-w-6xl">
         <motion.div
@@ -51,22 +52,17 @@ export function HowItWorks() {
         >
           <motion.p
             variants={fadeSlideUp}
-            className="text-sm font-semibold uppercase tracking-wider text-secondary"
+            className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary"
           >
             How it works
           </motion.p>
           <motion.h2
             variants={fadeSlideUp}
-            className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl"
+            className="mt-3 font-heading text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
           >
             Four steps to go live
           </motion.h2>
-          <motion.p
-            variants={fadeSlideUp}
-            className="mx-auto mt-3 max-w-2xl text-muted"
-          >
-            Four simple steps — then focus on selling.
-          </motion.p>
+          <SectionQuote quote="From signup to first sale in minutes — no code, no messy spreadsheets." />
         </motion.div>
 
         <div className="relative">

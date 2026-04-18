@@ -75,6 +75,34 @@ export default function MyOrdersPage() {
               typeof x.totalPrice === "number"
                 ? x.totalPrice
                 : Number(x.totalPrice) || 0,
+            subtotal:
+              typeof x.subtotal === "number"
+                ? x.subtotal
+                : Number(x.subtotal) || undefined,
+            couponCode:
+              typeof x.couponCode === "string" ? x.couponCode : null,
+            discountPercent:
+              typeof x.discountPercent === "number"
+                ? x.discountPercent
+                : Number(x.discountPercent) || undefined,
+            discountAmount:
+              typeof x.discountAmount === "number"
+                ? x.discountAmount
+                : Number(x.discountAmount) || undefined,
+            paymentMethod:
+              x.paymentMethod === "jazzcash" || x.paymentMethod === "easypaisa"
+                ? x.paymentMethod
+                : undefined,
+            paymentReceiver:
+              typeof x.paymentReceiver === "string" ? x.paymentReceiver : "",
+            paymentReference:
+              typeof x.paymentReference === "string" ? x.paymentReference : null,
+            customerName:
+              typeof x.customerName === "string" ? x.customerName : "",
+            customerPhone:
+              typeof x.customerPhone === "string" ? x.customerPhone : "",
+            deliveryAddress:
+              typeof x.deliveryAddress === "string" ? x.deliveryAddress : "",
             status: (x.status as OrderStatus) ?? "pending",
             customerEmail:
               typeof x.customerEmail === "string" ? x.customerEmail : "",
@@ -143,6 +171,49 @@ export default function MyOrdersPage() {
                         </li>
                       ))}
                     </ul>
+                    {(o.customerName || o.deliveryAddress) && (
+                      <div className="mt-3 border-t border-gray-100 pt-3 text-xs text-muted">
+                        {o.customerName ? (
+                          <p>
+                            <span className="font-medium text-ink">Deliver to:</span>{" "}
+                            {o.customerName}
+                            {o.customerPhone ? ` · ${o.customerPhone}` : ""}
+                          </p>
+                        ) : null}
+                        {o.deliveryAddress ? (
+                          <p className="mt-1">{o.deliveryAddress}</p>
+                        ) : null}
+                      </div>
+                    )}
+                    {(o.paymentMethod || o.couponCode) && (
+                      <div className="mt-3 border-t border-gray-100 pt-3 text-xs text-muted">
+                        {o.paymentMethod ? (
+                          <p>
+                            Payment:{" "}
+                            <span className="font-medium text-ink">
+                              {o.paymentMethod === "jazzcash"
+                                ? "JazzCash"
+                                : "EasyPaisa"}
+                            </span>
+                            {o.paymentReceiver ? ` (${o.paymentReceiver})` : ""}
+                          </p>
+                        ) : null}
+                        {o.couponCode ? (
+                          <p>
+                            Coupon: <span className="font-medium text-ink">{o.couponCode}</span>
+                            {o.discountAmount
+                              ? ` (-Rs ${o.discountAmount.toLocaleString("en-PK")})`
+                              : ""}
+                          </p>
+                        ) : null}
+                        {o.paymentReference ? (
+                          <p>
+                            Txn ref:{" "}
+                            <span className="font-medium text-ink">{o.paymentReference}</span>
+                          </p>
+                        ) : null}
+                      </div>
+                    )}
                   </Card>
                 </li>
               ))}

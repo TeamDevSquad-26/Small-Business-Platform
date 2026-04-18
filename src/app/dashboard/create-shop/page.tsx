@@ -79,6 +79,8 @@ export default function CreateShopPage() {
   const [instagram, setInstagram] = useState("");
   const [facebook, setFacebook] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [jazzCashNumber, setJazzCashNumber] = useState("");
+  const [easyPaisaNumber, setEasyPaisaNumber] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
@@ -271,9 +273,15 @@ export default function CreateShopPage() {
     const ig = instagram.trim();
     const fb = facebook.trim();
     const wa = whatsapp.trim();
+    const jazz = jazzCashNumber.trim();
+    const easypaisa = easyPaisaNumber.trim();
 
     if (!sn || !ct || !ds || !cat) {
       setError("Please fill in all required fields.");
+      return;
+    }
+    if (!jazz && !easypaisa) {
+      setError("Add at least one payment number: JazzCash or EasyPaisa.");
       return;
     }
 
@@ -316,6 +324,8 @@ export default function CreateShopPage() {
         instagram: ig,
         facebook: fb,
         whatsapp: wa,
+        jazzCashNumber: jazz,
+        easyPaisaNumber: easypaisa,
         logoUrl,
         coverUrl,
         createdAt: serverTimestamp(),
@@ -349,6 +359,8 @@ export default function CreateShopPage() {
           instagram: ig,
           facebook: fb,
           whatsapp: wa,
+          jazzCashNumber: jazz,
+          easyPaisaNumber: easypaisa,
           logoUrl,
           coverUrl,
           name: current.displayName ?? user?.name ?? "",
@@ -376,6 +388,8 @@ export default function CreateShopPage() {
       setInstagram("");
       setFacebook("");
       setWhatsapp("");
+      setJazzCashNumber("");
+      setEasyPaisaNumber("");
       setLogoFile(null);
       setCoverFile(null);
       setStep(1);
@@ -587,6 +601,36 @@ export default function CreateShopPage() {
                           value={whatsapp}
                           onChange={(e) => setWhatsapp(e.target.value)}
                           placeholder="+923001234567"
+                          className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm shadow-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                        />
+                      </Field>
+                    </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <h2 className="text-lg font-semibold text-ink">
+                      Payment Accounts (Mandatory)
+                    </h2>
+                    <p className="text-sm text-muted">
+                      Customer checkout par online payment inhi numbers par hogi.
+                      JazzCash ya EasyPaisa mein se kam az kam ek zaroori hai.
+                    </p>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <Field label="JazzCash number">
+                        <input
+                          type="tel"
+                          value={jazzCashNumber}
+                          onChange={(e) => setJazzCashNumber(e.target.value)}
+                          placeholder="03xxxxxxxxx"
+                          className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm shadow-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                        />
+                      </Field>
+                      <Field label="EasyPaisa number">
+                        <input
+                          type="tel"
+                          value={easyPaisaNumber}
+                          onChange={(e) => setEasyPaisaNumber(e.target.value)}
+                          placeholder="03xxxxxxxxx"
                           className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm shadow-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/20"
                         />
                       </Field>

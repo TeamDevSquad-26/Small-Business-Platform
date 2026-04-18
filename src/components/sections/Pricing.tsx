@@ -5,54 +5,16 @@ import { motion, useInView } from "framer-motion";
 import { Check } from "lucide-react";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { Card } from "@/components/ui/Card";
+import { SectionQuote } from "@/components/ui/SectionQuote";
 import { fadeSlideUp, staggerContainer } from "@/lib/motion";
-
-const plans = [
-  {
-    name: "Basic",
-    price: "1,999",
-    blurb: "Great for new sellers",
-    features: ["1 store", "50 products", "Email support"],
-    cta: "Choose Basic",
-    featured: false,
-    variant: "ghost" as const,
-  },
-  {
-    name: "Standard",
-    price: "3,999",
-    blurb: "Best value for growing shops",
-    features: [
-      "Custom domain",
-      "Unlimited products",
-      "Analytics & tracking",
-      "Priority support",
-    ],
-    cta: "Choose Standard",
-    featured: true,
-    variant: "primary" as const,
-  },
-  {
-    name: "Premium",
-    price: "7,999",
-    blurb: "For teams and scale",
-    features: [
-      "Multi-staff",
-      "API access",
-      "Advanced automation",
-      "Dedicated manager",
-    ],
-    cta: "Choose Premium",
-    featured: false,
-    variant: "ghost" as const,
-  },
-];
+import { LAUNCH_OFFER, SUBSCRIPTION_PLANS } from "@/lib/subscriptions/plans";
 
 export function Pricing() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-10%" });
 
   return (
-    <section id="pricing" className="scroll-mt-20 bg-surface px-4 py-20 sm:px-6 lg:px-8">
+    <section id="pricing" className="scroll-mt-20 bg-surface px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
       <div ref={ref} className="mx-auto max-w-6xl">
         <motion.div
           className="mb-14 text-center"
@@ -62,22 +24,27 @@ export function Pricing() {
         >
           <motion.p
             variants={fadeSlideUp}
-            className="text-sm font-semibold uppercase tracking-wider text-secondary"
+            className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary"
           >
             Pricing
           </motion.p>
           <motion.h2
             variants={fadeSlideUp}
-            className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl"
+            className="mt-3 font-heading text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
           >
             Simple, transparent plans
           </motion.h2>
-          <motion.p
-            variants={fadeSlideUp}
-            className="mx-auto mt-3 max-w-2xl text-muted"
-          >
-            Clear plans — Standard recommended for most shops.
-          </motion.p>
+          <SectionQuote quote="Start free, then grow into the plan that fits your traffic — not the other way around." />
+        </motion.div>
+
+        <motion.div
+          variants={fadeSlideUp}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          className="mb-8 rounded-2xl border border-secondary/20 bg-secondary/5 px-5 py-4 text-center"
+        >
+          <p className="text-sm font-semibold text-secondary">{LAUNCH_OFFER.title}</p>
+          <p className="mt-1 text-sm text-muted">{LAUNCH_OFFER.detail}</p>
         </motion.div>
 
         <motion.div
@@ -86,7 +53,7 @@ export function Pricing() {
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
         >
-          {plans.map((p) => (
+          {SUBSCRIPTION_PLANS.map((p) => (
             <motion.div
               key={p.name}
               variants={fadeSlideUp}
@@ -102,16 +69,16 @@ export function Pricing() {
               >
                 {p.featured ? (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow-soft">
-                    Recommended
+                    Most chosen
                   </span>
                 ) : null}
                 <div className="mb-6 text-center lg:text-left">
                   <h3 className="text-lg font-semibold text-ink">{p.name}</h3>
                   <p className="mt-1 text-sm text-muted">{p.blurb}</p>
                   <p className="mt-4 flex items-baseline justify-center gap-1 lg:justify-start">
-                    <span className="text-sm font-medium text-muted">Rs</span>
+                    <span className="text-sm font-medium text-muted">PKR</span>
                     <span className="text-4xl font-bold tracking-tight text-ink">
-                      {p.price}
+                      {p.pricePkr.toLocaleString()}
                     </span>
                     <span className="text-sm text-muted">/mo</span>
                   </p>
@@ -129,7 +96,7 @@ export function Pricing() {
                 </ul>
                 <LinkButton
                   href="/signup"
-                  variant={p.variant}
+                  variant={p.featured ? "primary" : "ghost"}
                   className="w-full !py-3"
                 >
                   {p.cta}

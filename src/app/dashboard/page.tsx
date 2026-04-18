@@ -33,6 +33,12 @@ import {
 } from "@/lib/firebase/client";
 import type { OrderDoc, OrderStatus } from "@/lib/orders/types";
 import { cn } from "@/lib/cn";
+import {
+  PLAN_CAPS,
+  getUserSubscription,
+  resolvePlanByCode,
+  type SubscriptionSnapshot,
+} from "@/lib/subscriptions/access";
 
 function formatDate(t: unknown): string {
   if (t && typeof t === "object" && t !== null && "toDate" in t) {
@@ -69,6 +75,8 @@ export default function DashboardPage() {
   );
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [productCount, setProductCount] = useState(0);
+  const [lowStockCount, setLowStockCount] = useState(0);
+  const [subscription, setSubscription] = useState<SubscriptionSnapshot | null>(null);
 
   useEffect(() => {
     if (!isReady || !user?.uid || !isFirebaseConfigured) {
@@ -93,6 +101,20 @@ export default function DashboardPage() {
       if (cancelled) return;
       setShopId(snap.docs[0]?.id ?? null);
       setLoadingShop(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isReady, user?.uid, isFirebaseConfigured]);
+
+  useEffect(() => {
+    if (!isReady || !user?.uid || !isFirebaseConfigured) return;
+    const db = getFirebaseDb();
+    if (!db) return;
+    let cancelled = false;
+    (async () => {
+      const sub = await getUserSubscription(db, user.uid);
+      if (!cancelled) setSubscription(sub);
     })();
     return () => {
       cancelled = true;
@@ -167,6 +189,13 @@ export default function DashboardPage() {
     const q = query(collection(db, "products"), where("shopId", "==", shopId));
     const unsub = onSnapshot(q, (snap) => {
       setProductCount(snap.size);
+      const low = snap.docs.reduce((n, d) => {
+        const stockRaw = d.data()?.stock;
+        const stock =
+          typeof stockRaw === "number" ? stockRaw : Number(stockRaw) || 0;
+        return stock <= 5 ? n + 1 : n;
+      }, 0);
+      setLowStockCount(low);
     });
     return () => unsub();
   }, [shopId]);
@@ -182,6 +211,7 @@ export default function DashboardPage() {
   );
 
   const recentRows = useMemo(() => orders.slice(0, 8), [orders]);
+  const caps = PLAN_CAPS[subscription?.effectivePlan ?? "basic"];
 
   const ordersHint =
     pendingCount > 0
@@ -259,12 +289,29 @@ export default function DashboardPage() {
           <StatCard
             variants={fadeSlideUp}
             title="Subscription"
-            value="Standard"
-            hint="Renews May 1"
+            value={resolvePlanByCode(subscription?.effectivePlan ?? "basic").name}
+            hint={
+              subscription?.launchFreeActive
+                ? `Free month active till ${subscription.launchEndsAt.toLocaleDateString("en-PK")}`
+                : "Active plan"
+            }
             icon={CreditCard}
             accent="green"
           />
         </motion.div>
+
+        {caps.lowStockAlerts && shopId ? (
+          <motion.div variants={fadeSlideUp}>
+            <Card hover={false} className="border-amber-200 bg-amber-50/70 p-4">
+              <p className="text-sm font-semibold text-amber-900">Low stock alerts</p>
+              <p className="mt-1 text-sm text-amber-800">
+                {lowStockCount > 0
+                  ? `${lowStockCount} products are at low stock (<= 5).`
+                  : "All products are sufficiently stocked."}
+              </p>
+            </Card>
+          </motion.div>
+        ) : null}
 
         <div className="grid gap-6 lg:grid-cols-3">
           <motion.div variants={fadeSlideUp} className="lg:col-span-2">

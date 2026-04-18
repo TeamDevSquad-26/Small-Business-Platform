@@ -8,6 +8,7 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   limit,
   query,
   serverTimestamp,
@@ -15,7 +16,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getFirebaseCurrentUserWhenReady,
@@ -25,6 +26,13 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/cn";
+import { LAUNCH_OFFER, SUBSCRIPTION_PLANS } from "@/lib/subscriptions/plans";
+import {
+  PLAN_CAPS,
+  getUserSubscription,
+  resolvePlanByCode,
+  type SubscriptionSnapshot,
+} from "@/lib/subscriptions/access";
 
 const CATEGORIES = [
   "Fashion",
@@ -67,8 +75,20 @@ export default function SettingsPage() {
   const [instagram, setInstagram] = useState("");
   const [facebook, setFacebook] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [jazzCashNumber, setJazzCashNumber] = useState("");
+  const [easyPaisaNumber, setEasyPaisaNumber] = useState("");
   const [savingShop, setSavingShop] = useState(false);
   const [shopMessage, setShopMessage] = useState("");
+  const [subscription, setSubscription] = useState<SubscriptionSnapshot | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<"basic" | "standard" | "premium">(
+    "basic"
+  );
+  const [savingPlan, setSavingPlan] = useState(false);
+  const [planMessage, setPlanMessage] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponPct, setCouponPct] = useState("10");
+  const [coupons, setCoupons] = useState<{ code: string; percentOff: number }[]>([]);
+  const [couponMessage, setCouponMessage] = useState("");
 
   useEffect(() => {
     if (isReady && !user) router.replace("/login");
@@ -118,6 +138,12 @@ export default function SettingsPage() {
         setInstagram(typeof x.instagram === "string" ? x.instagram : "");
         setFacebook(typeof x.facebook === "string" ? x.facebook : "");
         setWhatsapp(typeof x.whatsapp === "string" ? x.whatsapp : "");
+        setJazzCashNumber(
+          typeof x.jazzCashNumber === "string" ? x.jazzCashNumber : ""
+        );
+        setEasyPaisaNumber(
+          typeof x.easyPaisaNumber === "string" ? x.easyPaisaNumber : ""
+        );
       } finally {
         if (!cancelled) setShopLoading(false);
       }
@@ -127,6 +153,53 @@ export default function SettingsPage() {
       cancelled = true;
     };
   }, [ownerKey, isFirebaseConfigured]);
+
+  useEffect(() => {
+    if (!ownerKey || !isFirebaseConfigured) return;
+    const db = getFirebaseDb();
+    if (!db) return;
+    let cancelled = false;
+    (async () => {
+      const sub = await getUserSubscription(db, ownerKey);
+      if (!cancelled) {
+        setSubscription(sub);
+        setSelectedPlan(sub.selectedPlan);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ownerKey, isFirebaseConfigured]);
+
+  useEffect(() => {
+    if (!shopId || !isFirebaseConfigured) {
+      setCoupons([]);
+      return;
+    }
+    const db = getFirebaseDb();
+    if (!db) return;
+    let cancelled = false;
+    (async () => {
+      const snap = await getDoc(doc(db, "shops", shopId));
+      if (cancelled) return;
+      const arr = snap.data()?.coupons;
+      if (Array.isArray(arr)) {
+        const rows = arr
+          .map((x) => ({
+            code: typeof x?.code === "string" ? x.code : "",
+            percentOff:
+              typeof x?.percentOff === "number" ? x.percentOff : Number(x?.percentOff) || 0,
+          }))
+          .filter((x) => x.code && x.percentOff > 0);
+        setCoupons(rows);
+      } else {
+        setCoupons([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [shopId, isFirebaseConfigured]);
 
   async function handleSaveProfile() {
     setProfileMessage("");
@@ -178,8 +251,14 @@ export default function SettingsPage() {
     const ct = city.trim();
     const ds = description.trim();
     const cat = category.trim();
+    const jazz = jazzCashNumber.trim();
+    const easypaisa = easyPaisaNumber.trim();
     if (!sn || !ct || !ds || !cat) {
       setShopMessage("Shop name, city, description, and category are required.");
+      return;
+    }
+    if (!jazz && !easypaisa) {
+      setShopMessage("Add at least one payment number: JazzCash or EasyPaisa.");
       return;
     }
 
@@ -199,6 +278,8 @@ export default function SettingsPage() {
         instagram: instagram.trim(),
         facebook: facebook.trim(),
         whatsapp: whatsapp.trim(),
+        jazzCashNumber: jazzCashNumber.trim(),
+        easyPaisaNumber: easyPaisaNumber.trim(),
         updatedAt: serverTimestamp(),
       });
       setShopMessage("Shop details saved.");
@@ -206,6 +287,61 @@ export default function SettingsPage() {
       setShopMessage(firestoreErrMessage(e, "Could not save shop."));
     } finally {
       setSavingShop(false);
+    }
+  }
+
+  async function handleSavePlan() {
+    setPlanMessage("");
+    if (!ownerKey || !isFirebaseConfigured) return;
+    const db = getFirebaseDb();
+    if (!db) return;
+    setSavingPlan(true);
+    try {
+      await setDoc(
+        doc(db, "users", ownerKey),
+        { subscriptionPlan: selectedPlan, updatedAt: serverTimestamp() },
+        { merge: true }
+      );
+      const sub = await getUserSubscription(db, ownerKey);
+      setSubscription(sub);
+      setPlanMessage("Plan preference saved.");
+    } catch (e) {
+      setPlanMessage(firestoreErrMessage(e, "Could not save plan."));
+    } finally {
+      setSavingPlan(false);
+    }
+  }
+
+  async function handleAddCoupon() {
+    setCouponMessage("");
+    if (!shopId || !isFirebaseConfigured) return;
+    const db = getFirebaseDb();
+    if (!db) return;
+    const code = couponCode.trim().toUpperCase();
+    const pct = Number(couponPct);
+    if (!code) {
+      setCouponMessage("Coupon code required.");
+      return;
+    }
+    if (!Number.isFinite(pct) || pct < 1 || pct > 80) {
+      setCouponMessage("Discount should be between 1% and 80%.");
+      return;
+    }
+    const next = [
+      ...coupons.filter((c) => c.code !== code),
+      { code, percentOff: Math.round(pct) },
+    ].slice(-20);
+    try {
+      await updateDoc(doc(db, "shops", shopId), {
+        coupons: next,
+        updatedAt: serverTimestamp(),
+      });
+      setCoupons(next);
+      setCouponCode("");
+      setCouponPct("10");
+      setCouponMessage("Coupon saved.");
+    } catch (e) {
+      setCouponMessage(firestoreErrMessage(e, "Could not save coupon."));
     }
   }
 
@@ -369,6 +505,18 @@ export default function SettingsPage() {
                 onChange={(e) => setWhatsapp(e.target.value)}
                 placeholder="Phone or link"
               />
+              <Input
+                label="JazzCash number (required for online payments)"
+                value={jazzCashNumber}
+                onChange={(e) => setJazzCashNumber(e.target.value)}
+                placeholder="03xxxxxxxxx"
+              />
+              <Input
+                label="EasyPaisa number (optional if JazzCash added)"
+                value={easyPaisaNumber}
+                onChange={(e) => setEasyPaisaNumber(e.target.value)}
+                placeholder="03xxxxxxxxx"
+              />
               <div className="flex flex-wrap items-center gap-3 pt-2">
                 <Button
                   type="button"
@@ -391,6 +539,141 @@ export default function SettingsPage() {
                 ) : null}
               </div>
             </div>
+          )}
+        </Card>
+
+        <Card hover={false} className="p-6 md:p-8">
+          <h2 className="text-lg font-semibold text-ink">Subscription</h2>
+          <p className="mt-1 text-sm text-muted">
+            Launch phase mein sab users ko one month free access diya ja raha hai.
+          </p>
+
+          <div className="mt-4 rounded-xl border border-secondary/20 bg-secondary/5 p-4">
+            <p className="text-sm font-semibold text-secondary">{LAUNCH_OFFER.title}</p>
+            <p className="mt-1 text-sm text-muted">{LAUNCH_OFFER.detail}</p>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {SUBSCRIPTION_PLANS.map((plan) => (
+              <div
+                key={plan.code}
+                className={cn(
+                  "rounded-2xl border p-4",
+                  plan.featured
+                    ? "border-secondary/40 bg-secondary/[0.04]"
+                    : "border-gray-200 bg-white"
+                )}
+              >
+                <p className="text-sm font-semibold text-ink">{plan.name}</p>
+                <p className="mt-1 text-2xl font-bold text-ink">
+                  PKR {plan.pricePkr.toLocaleString()}
+                  <span className="ml-1 text-xs font-medium text-muted">/mo</span>
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {plan.features.map((feature) => (
+                    <li
+                      key={feature}
+                      className="flex items-start gap-2 text-xs text-muted"
+                    >
+                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-secondary" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-4">
+            <p className="text-sm font-semibold text-ink">Plan after launch month</p>
+            <p className="mt-1 text-xs text-muted">
+              Launch free phase ke baad selected plan billing apply hogi.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {SUBSCRIPTION_PLANS.map((plan) => (
+                <button
+                  key={plan.code}
+                  type="button"
+                  onClick={() => setSelectedPlan(plan.code)}
+                  className={cn(
+                    "rounded-xl border px-3 py-2 text-sm font-medium",
+                    selectedPlan === plan.code
+                      ? "border-secondary bg-secondary/10 text-secondary"
+                      : "border-gray-200 text-muted hover:border-gray-300"
+                  )}
+                >
+                  {plan.name}
+                </button>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              <Button
+                type="button"
+                onClick={() => void handleSavePlan()}
+                disabled={savingPlan}
+              >
+                {savingPlan ? "Saving…" : "Save plan preference"}
+              </Button>
+              {planMessage ? <p className="text-sm text-muted">{planMessage}</p> : null}
+            </div>
+            {subscription ? (
+              <p className="mt-3 text-xs text-muted">
+                Active now: <span className="font-semibold text-ink">{resolvePlanByCode(subscription.effectivePlan).name}</span>
+                {" • "}After launch:{" "}
+                <span className="font-semibold text-ink">
+                  {resolvePlanByCode(subscription.selectedPlan).name}
+                </span>
+              </p>
+            ) : null}
+          </div>
+
+          {subscription && PLAN_CAPS[subscription.effectivePlan].couponsEnabled ? (
+            <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-4">
+              <p className="text-sm font-semibold text-ink">Discount coupons</p>
+              <p className="mt-1 text-xs text-muted">
+                Standard/Premium feature. Add coupon code and percent off for checkout.
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <Input
+                  label="Code"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  placeholder="EID20"
+                />
+                <Input
+                  label="Discount %"
+                  value={couponPct}
+                  onChange={(e) => setCouponPct(e.target.value)}
+                  placeholder="10"
+                />
+                <div className="flex items-end">
+                  <Button type="button" onClick={() => void handleAddCoupon()} className="w-full">
+                    Add / Update coupon
+                  </Button>
+                </div>
+              </div>
+              {couponMessage ? (
+                <p className="mt-2 text-xs text-muted">{couponMessage}</p>
+              ) : null}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {coupons.length === 0 ? (
+                  <p className="text-xs text-muted">No coupons yet.</p>
+                ) : (
+                  coupons.map((c) => (
+                    <span
+                      key={c.code}
+                      className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-ink"
+                    >
+                      {c.code} - {c.percentOff}% OFF
+                    </span>
+                  ))
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="mt-4 text-xs text-muted">
+              Discount coupons unlock on Standard and Premium plans.
+            </p>
           )}
         </Card>
       </div>

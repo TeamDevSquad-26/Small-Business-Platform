@@ -20,6 +20,8 @@ type ShopDetail = {
   instagram: string;
   facebook: string;
   whatsapp: string;
+  jazzCashNumber: string;
+  easyPaisaNumber: string;
 };
 
 export function ShopDetailView() {
@@ -70,6 +72,10 @@ export function ShopDetailView() {
           instagram: typeof d.instagram === "string" ? d.instagram : "",
           facebook: typeof d.facebook === "string" ? d.facebook : "",
           whatsapp: typeof d.whatsapp === "string" ? d.whatsapp : "",
+          jazzCashNumber:
+            typeof d.jazzCashNumber === "string" ? d.jazzCashNumber : "",
+          easyPaisaNumber:
+            typeof d.easyPaisaNumber === "string" ? d.easyPaisaNumber : "",
         });
       } catch {
         if (!cancelled) setNotFound(true);
@@ -213,6 +219,8 @@ export function ShopDetailView() {
             shopId={shop.shopId}
             shopOwnerId={shop.ownerId}
             shopName={shop.shopName}
+            jazzCashNumber={shop.jazzCashNumber}
+            easyPaisaNumber={shop.easyPaisaNumber}
           />
         </div>
       </div>

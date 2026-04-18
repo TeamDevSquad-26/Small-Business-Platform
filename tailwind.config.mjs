@@ -22,6 +22,12 @@ const config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        heading: [
+          "var(--font-heading)",
+          "Georgia",
+          "Times New Roman",
+          "serif",
+        ],
       },
     },
   },

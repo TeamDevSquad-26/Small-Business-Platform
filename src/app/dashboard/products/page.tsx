@@ -30,6 +30,12 @@ import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { fadeSlideUp, staggerContainer } from "@/lib/motion";
 import Link from "next/link";
+import {
+  PLAN_CAPS,
+  getUserSubscription,
+  resolvePlanByCode,
+  type SubscriptionSnapshot,
+} from "@/lib/subscriptions/access";
 
 type Product = {
   id: string;
@@ -93,6 +99,7 @@ export default function ProductsPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [preview, setPreview] = useState("");
   const [formError, setFormError] = useState("");
+  const [subscription, setSubscription] = useState<SubscriptionSnapshot | null>(null);
 
   useEffect(() => {
     if (isReady && !user) router.replace("/login");
@@ -195,6 +202,20 @@ export default function ProductsPage() {
   }, [isReady, user?.uid, isFirebaseConfigured, resolveShop, loadProducts]);
 
   useEffect(() => {
+    if (!isReady || !user?.uid || !isFirebaseConfigured) return;
+    const db = getFirebaseDb();
+    if (!db) return;
+    let cancelled = false;
+    (async () => {
+      const sub = await getUserSubscription(db, user.uid);
+      if (!cancelled) setSubscription(sub);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isReady, user?.uid, isFirebaseConfigured]);
+
+  useEffect(() => {
     if (!form.imageFile) return;
     const url = URL.createObjectURL(form.imageFile);
     setPreview(url);
@@ -205,6 +226,11 @@ export default function ProductsPage() {
     () => products.find((p) => p.id === editingId) ?? null,
     [products, editingId]
   );
+  const caps = PLAN_CAPS[subscription?.effectivePlan ?? "basic"];
+  const maxProducts = caps.maxProducts;
+  const reachedProductLimit = Number.isFinite(maxProducts)
+    ? products.length >= maxProducts
+    : false;
 
   const resetForm = () => {
     setForm(initialForm);
@@ -265,6 +291,12 @@ export default function ProductsPage() {
     if (!validate()) return;
     if (!shopId) {
       setFormError("No shop found. Create a shop first.");
+      return;
+    }
+    if (!editingId && reachedProductLimit) {
+      setFormError(
+        `Product limit reached for ${resolvePlanByCode(subscription?.effectivePlan ?? "basic").name}.`
+      );
       return;
     }
     if (!isCloudinaryConfigured) {
@@ -371,16 +403,29 @@ export default function ProductsPage() {
             <p className="mt-1 text-sm text-muted">
               Add products with photo, price, and stock for your shop.
             </p>
+            <p className="mt-1 text-xs text-muted">
+              Plan: {resolvePlanByCode(subscription?.effectivePlan ?? "basic").name}{" "}
+              {Number.isFinite(maxProducts)
+                ? `(${products.length}/${maxProducts} products used)`
+                : "(unlimited products)"}
+            </p>
           </div>
           <Button
             className="gap-2"
             onClick={openAddModal}
-            disabled={!shopId || saving}
+            disabled={!shopId || saving || reachedProductLimit}
           >
             <Plus className="h-4 w-4" />
             Add Product
           </Button>
         </motion.div>
+        {reachedProductLimit ? (
+          <Card hover={false} className="mb-4 border-amber-200 bg-amber-50 p-4">
+            <p className="text-sm text-amber-900">
+              Product limit reached. Upgrade plan to add more products.
+            </p>
+          </Card>
+        ) : null}
 
         {!loadingShop && !shopId ? (
           <Card hover={false} className="p-8 text-center">
@@ -461,6 +506,11 @@ export default function ProductsPage() {
                       Rs {product.price.toLocaleString("en-PK")}
                     </p>
                     <p className="text-xs text-muted">Stock: {product.stock}</p>
+                    {caps.lowStockAlerts && product.stock <= 5 ? (
+                      <p className="mt-1 text-xs font-semibold text-amber-700">
+                        Low stock alert
+                      </p>
+                    ) : null}
                   </div>
                   <div className="mt-4 flex gap-2">
                     <Button

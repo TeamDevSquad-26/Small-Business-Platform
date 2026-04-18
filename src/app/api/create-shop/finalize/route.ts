@@ -35,6 +35,8 @@ export async function POST(req: NextRequest) {
     instagram?: string;
     facebook?: string;
     whatsapp?: string;
+    jazzCashNumber?: string;
+    easyPaisaNumber?: string;
     logoUrl?: string;
     coverUrl?: string;
     name?: string;
@@ -54,6 +56,8 @@ export async function POST(req: NextRequest) {
   const instagram = String(body.instagram ?? "").trim();
   const facebook = String(body.facebook ?? "").trim();
   const whatsapp = String(body.whatsapp ?? "").trim();
+  const jazzCashNumber = String(body.jazzCashNumber ?? "").trim();
+  const easyPaisaNumber = String(body.easyPaisaNumber ?? "").trim();
   const logoUrl = String(body.logoUrl ?? "").trim();
   const coverUrl = String(body.coverUrl ?? "").trim();
   const name = String(body.name ?? "").trim();
@@ -64,6 +68,12 @@ export async function POST(req: NextRequest) {
         error:
           "shopName, city, description, category, logoUrl, and coverUrl are required.",
       },
+      { status: 400 }
+    );
+  }
+  if (!jazzCashNumber && !easyPaisaNumber) {
+    return NextResponse.json(
+      { error: "Add at least one payment number: jazzCashNumber or easyPaisaNumber." },
       { status: 400 }
     );
   }
@@ -82,6 +92,8 @@ export async function POST(req: NextRequest) {
     instagram,
     facebook,
     whatsapp,
+    jazzCashNumber,
+    easyPaisaNumber,
     logoUrl,
     coverUrl,
     createdAt: FieldValue.serverTimestamp(),

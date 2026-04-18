@@ -13,6 +13,17 @@ export type OrderDoc = {
   shopId: string;
   items: OrderItemLine[];
   totalPrice: number;
+  subtotal?: number;
+  couponCode?: string | null;
+  discountPercent?: number;
+  discountAmount?: number;
+  paymentMethod?: "jazzcash" | "easypaisa";
+  paymentReceiver?: string;
+  paymentStatus?: "pending" | "paid";
+  paymentReference?: string | null;
+  customerName?: string;
+  customerPhone?: string;
+  deliveryAddress?: string;
   status: OrderStatus;
   customerEmail?: string;
   createdAt?: unknown;

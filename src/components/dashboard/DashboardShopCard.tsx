@@ -128,12 +128,20 @@ export function DashboardShopCard() {
           <p className="mt-1 text-sm text-muted">
             {[shop.city, shop.category].filter(Boolean).join(" · ") || "—"}
           </p>
-          <Link
-            href="/dashboard/create-shop"
-            className="mt-2 inline-block text-sm font-medium text-secondary hover:underline"
-          >
-            Edit shop details
-          </Link>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+            <Link
+              href="/dashboard/shop"
+              className="text-sm font-semibold text-secondary hover:underline"
+            >
+              Shop admin
+            </Link>
+            <Link
+              href="/dashboard/create-shop"
+              className="text-sm font-medium text-muted hover:text-ink hover:underline"
+            >
+              Edit shop details
+            </Link>
+          </div>
         </div>
       </div>
     </div>

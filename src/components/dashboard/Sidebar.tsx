@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   LayoutDashboard,
+  Building2,
   Store,
   Package,
   ShoppingCart,
@@ -15,6 +16,7 @@ import { cn } from "@/lib/cn";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/shop", label: "Shop admin", icon: Building2 },
   { href: "/dashboard/create-shop", label: "Create Shop", icon: Store },
   { href: "/dashboard/products", label: "Products", icon: Package },
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingCart },
