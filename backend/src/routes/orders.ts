@@ -3,7 +3,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { z } from "zod";
 import { getDb } from "../config/firebase.js";
 import { HttpError } from "../lib/errors.js";
-import { requireAuth } from "../middleware/auth.js";
+import { getRequiredUser, requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -29,9 +29,10 @@ router.post("/", requireAuth, async (req, res, next) => {
   try {
     const body = createOrderSchema.parse(req.body);
     const db = getDb();
-    const customerId = req.user!.uid;
+    const user = getRequiredUser(req);
+    const customerId = user.uid;
 
-    if (req.user!.role === "admin") {
+    if (user.role === "admin") {
       // Admin can still place test orders if needed; no block
     }
 
@@ -111,7 +112,8 @@ router.post("/", requireAuth, async (req, res, next) => {
 router.get("/user/:userId", requireAuth, async (req, res, next) => {
   try {
     const userId = req.params.userId;
-    if (req.user!.uid !== userId && req.user!.role !== "admin") {
+    const user = getRequiredUser(req);
+    if (user.uid !== userId && user.role !== "admin") {
       throw new HttpError(403, "You can only view your own orders");
     }
 
@@ -140,7 +142,8 @@ router.get("/shop/:shopId", requireAuth, async (req, res, next) => {
     if (!shop.exists) throw new HttpError(404, "Shop not found");
 
     const ownerId = shop.data()?.ownerId as string;
-    if (req.user!.uid !== ownerId && req.user!.role !== "admin") {
+    const user = getRequiredUser(req);
+    if (user.uid !== ownerId && user.role !== "admin") {
       throw new HttpError(403, "You can only view orders for your own shop");
     }
 
@@ -176,8 +179,9 @@ router.put("/:id", requireAuth, async (req, res, next) => {
     const shopId = doc.data()?.shopId as string;
     const shop = await db.collection("shops").doc(shopId).get();
     const ownerId = shop.data()?.ownerId as string;
+    const user = getRequiredUser(req);
 
-    if (req.user!.role !== "admin" && req.user!.uid !== ownerId) {
+    if (user.role !== "admin" && user.uid !== ownerId) {
       throw new HttpError(403, "Only the shop owner or admin can update order status");
     }
 

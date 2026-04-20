@@ -3,7 +3,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { z } from "zod";
 import { getDb } from "../config/firebase.js";
 import { HttpError } from "../lib/errors.js";
-import { requireAuth } from "../middleware/auth.js";
+import { getRequiredUser, requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -56,7 +56,8 @@ router.get("/:shopId", async (req, res, next) => {
 router.post("/", requireAuth, async (req, res, next) => {
   try {
     const body = createProductSchema.parse(req.body);
-    await assertShopOwner(body.shopId, req.user!.uid, true, req.user!.role);
+    const user = getRequiredUser(req);
+    await assertShopOwner(body.shopId, user.uid, true, user.role);
 
     const ref = getDb().collection("products").doc();
     await ref.set({
@@ -88,7 +89,8 @@ router.put("/:id", requireAuth, async (req, res, next) => {
     if (!doc.exists) throw new HttpError(404, "Product not found");
 
     const shopId = doc.data()?.shopId as string;
-    await assertShopOwner(shopId, req.user!.uid, true, req.user!.role);
+    const user = getRequiredUser(req);
+    await assertShopOwner(shopId, user.uid, true, user.role);
 
     const updates: Record<string, unknown> = {};
     if (body.name !== undefined) updates.name = body.name;
@@ -118,7 +120,8 @@ router.delete("/:id", requireAuth, async (req, res, next) => {
     if (!doc.exists) throw new HttpError(404, "Product not found");
 
     const shopId = doc.data()?.shopId as string;
-    await assertShopOwner(shopId, req.user!.uid, true, req.user!.role);
+    const user = getRequiredUser(req);
+    await assertShopOwner(shopId, user.uid, true, user.role);
 
     await ref.delete();
     return res.json({ message: "Product deleted", productId });

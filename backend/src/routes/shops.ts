@@ -3,7 +3,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { z } from "zod";
 import { getDb } from "../config/firebase.js";
 import { HttpError } from "../lib/errors.js";
-import { requireAuth } from "../middleware/auth.js";
+import { getRequiredUser, requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -68,7 +68,7 @@ router.post("/", requireAuth, async (req, res, next) => {
   try {
     const body = createShopSchema.parse(req.body);
     const db = getDb();
-    const uid = req.user!.uid;
+    const uid = getRequiredUser(req).uid;
 
     const shopRef = db.collection("shops").doc();
     const batch = db.batch();
