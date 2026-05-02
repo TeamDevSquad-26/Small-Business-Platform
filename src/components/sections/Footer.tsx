@@ -3,7 +3,6 @@ import Link from "next/link";
 const explore = [
   { href: "/#features", label: "Features" },
   { href: "/#how-it-works", label: "How it works" },
-  { href: "/#pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },
   { href: "/shops", label: "Browse shops" },
 ];
@@ -15,14 +14,18 @@ const account = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-ink px-4 py-16 text-gray-400 sm:px-6 lg:px-8">
+    <footer className="relative overflow-hidden border-t border-white/10 bg-ink px-4 py-16 text-gray-400 sm:px-6 lg:px-8">
+      <div
+        className="pointer-events-none absolute left-1/2 top-0 h-28 w-[26rem] -translate-x-1/2 bg-gradient-to-b from-secondary/20 to-transparent blur-2xl"
+        aria-hidden
+      />
       <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[1.2fr_1fr_1fr] md:gap-10 lg:gap-14">
         <div className="text-center md:text-left">
           <p className="font-heading text-2xl font-semibold tracking-tight text-white">
             Karobaar
           </p>
           <p className="mt-3 max-w-sm text-sm leading-relaxed">
-            Shops for vendors, discovery for buyers one platform for local commerce
+            Shops for vendors, discovery for buyers — one platform for local commerce
             and small brands.
           </p>
         </div>

@@ -41,7 +41,9 @@ type AuthContextValue = {
     name: string;
     email: string;
     password: string;
-    shopName: string;
+    /** Required when role is vendor (default). */
+    shopName?: string;
+    role?: "customer" | "vendor";
   }) => Promise<{ ok: true } | { ok: false; message: string }>;
   logout: () => void;
 };
@@ -110,7 +112,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: string;
       email: string;
       password: string;
-      shopName: string;
+      shopName?: string;
+      role?: "customer" | "vendor";
     }) => {
       if (!auth) {
         return {
@@ -119,15 +122,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
 
+      const role = data.role ?? "vendor";
       const normalizedEmail = data.email.trim().toLowerCase();
       const rawPassword = data.password.trim();
-      const shopName = data.shopName.trim();
-      const name = data.name.trim() || shopName || data.email.split("@")[0] || "User";
+      const shopName = (data.shopName ?? "").trim();
+      const name =
+        data.name.trim() ||
+        (role === "vendor" ? shopName : "") ||
+        data.email.split("@")[0] ||
+        "User";
 
-      if (!normalizedEmail || !rawPassword || !shopName) {
+      if (!normalizedEmail || !rawPassword) {
         return {
           ok: false as const,
-          message: "Name, email, password, and shop name are required.",
+          message: "Email and password are required.",
+        };
+      }
+
+      if (role === "vendor" && !shopName) {
+        return {
+          ok: false as const,
+          message: "Shop name is required for vendor accounts.",
         };
       }
 

@@ -2,24 +2,29 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { MapPin, ShieldCheck, Smartphone } from "lucide-react";
+import { BookOpen, Handshake, Headphones, Sparkles } from "lucide-react";
 import { fadeSlideUp, staggerContainer } from "@/lib/motion";
 
-const items = [
+const supportItems = [
   {
-    title: "Pakistan-first",
-    desc: "Built around how people actually pay and message here.",
-    icon: MapPin,
+    title: "24/7 support",
+    desc: "Get help whenever you need guidance.",
+    icon: Headphones,
   },
   {
-    title: "Mobile-ready",
-    desc: "Your shop link opens fast on phones where your buyers are.",
-    icon: Smartphone,
+    title: "Free apps",
+    desc: "Expand your workflow with built-in tools.",
+    icon: Sparkles,
   },
   {
-    title: "Clear checkout",
-    desc: "Orders with delivery and payment details less back-and-forth.",
-    icon: ShieldCheck,
+    title: "Online courses",
+    desc: "Learn faster with practical playbooks.",
+    icon: BookOpen,
+  },
+  {
+    title: "Shopify Partners",
+    desc: "Work with trusted experts to scale.",
+    icon: Handshake,
   },
 ];
 
@@ -29,27 +34,66 @@ export function SocialProof() {
 
   return (
     <section
-      className="border-b border-gray-100 bg-surface px-4 py-12 sm:px-6 sm:py-14 lg:px-8"
-      aria-label="Why Karobaar"
+      className="border-b border-gray-100 bg-surface px-4 py-14 sm:px-6 sm:py-16 lg:px-8"
+      aria-label="Commerce overview"
     >
-      <div ref={ref} className="mx-auto max-w-6xl">
+      <div ref={ref} className="mx-auto max-w-4xl">
         <motion.div
-          className="grid gap-8 sm:grid-cols-3 sm:gap-6"
+          className="mb-8"
           variants={staggerContainer}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
         >
-          {items.map(({ title, desc, icon: Icon }) => (
+          <motion.p
+            variants={fadeSlideUp}
+            className="text-sm font-medium text-ink"
+          >
+            The global platform for commerce
+          </motion.p>
+        </motion.div>
+
+        <motion.div
+          variants={fadeSlideUp}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          className="mb-10 grid gap-3 sm:grid-cols-2"
+        >
+          <div className="rounded-none border border-gray-200 bg-[#f3f3f3] px-4 py-3">
+            <p className="text-sm font-semibold text-ink">$1+ trillion</p>
+          </div>
+          <div className="rounded-none border border-gray-200 bg-[#f3f3f3] px-4 py-3">
+            <p className="text-sm font-semibold text-ink">175+ countries</p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="mb-4"
+          variants={staggerContainer}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+        >
+          <motion.p variants={fadeSlideUp} className="text-sm font-medium text-ink">
+            Build with help by your side
+          </motion.p>
+        </motion.div>
+
+        <motion.div
+          className="grid gap-3 sm:grid-cols-4 sm:gap-4"
+          variants={staggerContainer}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+        >
+          {supportItems.map(({ title, desc, icon: Icon }) => (
             <motion.div
               key={title}
               variants={fadeSlideUp}
-              className="flex flex-col items-center text-center sm:items-start sm:text-left"
+              className="border-t border-gray-200 pt-3"
             >
-              <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-secondary/10 text-secondary ring-1 ring-secondary/15">
-                <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+              <div className="mb-2 inline-flex h-6 w-6 items-center justify-center text-muted">
+                <Icon className="h-4 w-4" strokeWidth={1.8} aria-hidden />
               </div>
-              <p className="font-heading text-lg font-semibold text-ink">{title}</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted">{desc}</p>
+              <p className="text-xs font-semibold text-ink">{title}</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-muted">{desc}</p>
             </motion.div>
           ))}
         </motion.div>

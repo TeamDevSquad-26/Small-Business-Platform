@@ -46,6 +46,22 @@ export function Pricing() {
           <p className="text-sm font-semibold text-secondary">{LAUNCH_OFFER.title}</p>
           <p className="mt-1 text-sm text-muted">{LAUNCH_OFFER.detail}</p>
         </motion.div>
+        <motion.div
+          variants={fadeSlideUp}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          className="mb-8 grid gap-3 rounded-2xl border border-gray-200/80 bg-white/90 p-3 shadow-sm sm:grid-cols-3"
+        >
+          <p className="rounded-xl bg-gray-50/80 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-muted">
+            No hidden platform fees
+          </p>
+          <p className="rounded-xl bg-gray-50/80 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-muted">
+            Upgrade whenever growth demands
+          </p>
+          <p className="rounded-xl bg-gray-50/80 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-muted">
+            Built for seller confidence
+          </p>
+        </motion.div>
 
         <motion.div
           className="grid gap-6 lg:grid-cols-3 lg:items-stretch"

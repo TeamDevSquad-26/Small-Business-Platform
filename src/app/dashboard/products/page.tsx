@@ -17,7 +17,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { Box, Pencil, Plus, Trash2, PackageSearch } from "lucide-react";
+import { Box, Pencil, Plus, Sparkles, Trash2, PackageSearch } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { uploadImageToCloudinary, isCloudinaryConfigured } from "@/lib/cloudinary/client";
 import {
@@ -36,6 +36,8 @@ import {
   resolvePlanByCode,
   type SubscriptionSnapshot,
 } from "@/lib/subscriptions/access";
+import { PRODUCT_CATEGORIES } from "@/lib/products/categories";
+import { fetchAiFeatureStatus, requestProductDraft } from "@/lib/ai/product-draft-client";
 
 type Product = {
   id: string;
@@ -58,16 +60,14 @@ type ProductForm = {
 
 type FormErrors = Partial<Record<keyof ProductForm, string>>;
 
-const CATEGORIES = [
-  "Fashion",
-  "Electronics",
-  "Beauty",
-  "Home & Decor",
-  "Food & Grocery",
-  "Services",
-];
-
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+const ALLOWED_PRODUCT_IMAGE_MIMES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
 
 const initialForm: ProductForm = {
   name: "",
@@ -99,7 +99,22 @@ export default function ProductsPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [preview, setPreview] = useState("");
   const [formError, setFormError] = useState("");
+  const [aiDraftLoading, setAiDraftLoading] = useState(false);
+  const [aiDraftError, setAiDraftError] = useState("");
+  /** null = status not loaded yet */
+  const [aiProductDraftReady, setAiProductDraftReady] = useState<boolean | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionSnapshot | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { productDraft } = await fetchAiFeatureStatus();
+      if (!cancelled) setAiProductDraftReady(productDraft);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (isReady && !user) router.replace("/login");
@@ -226,6 +241,12 @@ export default function ProductsPage() {
     () => products.find((p) => p.id === editingId) ?? null,
     [products, editingId]
   );
+
+  /** Edit modal: existing Cloudinary HTTPS image counts as vision input when no new file. */
+  const aiHttpsExistingImage = useMemo(() => {
+    if (form.imageFile) return null;
+    return preview.startsWith("https://") ? preview : null;
+  }, [form.imageFile, preview]);
   const caps = PLAN_CAPS[subscription?.effectivePlan ?? "basic"];
   const maxProducts = caps.maxProducts;
   const reachedProductLimit = Number.isFinite(maxProducts)
@@ -238,6 +259,8 @@ export default function ProductsPage() {
     setPreview("");
     setEditingId(null);
     setFormError("");
+    setAiDraftError("");
+    setAiDraftLoading(false);
   };
 
   const openAddModal = () => {
@@ -258,6 +281,8 @@ export default function ProductsPage() {
     setPreview(product.imageUrl);
     setErrors({});
     setFormError("");
+    setAiDraftError("");
+    setAiDraftLoading(false);
     setOpen(true);
   };
 
@@ -362,6 +387,44 @@ export default function ProductsPage() {
     }
   };
 
+  const runAiDraft = async () => {
+    setAiDraftError("");
+    if (!form.name.trim() && !form.imageFile && !aiHttpsExistingImage) {
+      setAiDraftError(
+        "Pehle naam likho, nayi photo upload karo, ya edit mode mein saved HTTPS image honi chahiye — AI ko in mein se kuch na kuch chahiye."
+      );
+      return;
+    }
+    setAiDraftLoading(true);
+    try {
+      const draft = await requestProductDraft({
+        workingTitle: form.name,
+        imageFile: form.imageFile,
+        imageUrl: aiHttpsExistingImage,
+      });
+      const tagsLine =
+        draft.suggestedTags.length > 0
+          ? `\n\nSuggested tags: ${draft.suggestedTags.join(", ")}`
+          : "";
+      setForm((old) => ({
+        ...old,
+        name: draft.name.trim() || old.name,
+        description: `${draft.description.trim()}${tagsLine}`.trim(),
+        category: draft.suggestedCategory,
+      }));
+      setErrors((old) => ({
+        ...old,
+        name: undefined,
+        description: undefined,
+        category: undefined,
+      }));
+    } catch (e) {
+      setAiDraftError(e instanceof Error ? e.message : "AI draft failed.");
+    } finally {
+      setAiDraftLoading(false);
+    }
+  };
+
   const onDelete = async (id: string) => {
     if (!shopId || !confirm("Delete this product?")) return;
     const db = getFirebaseDb();
@@ -401,7 +464,7 @@ export default function ProductsPage() {
               Products
             </h1>
             <p className="mt-1 text-sm text-muted">
-              Add products with photo, price, and stock for your shop.
+              Add products with photo, price, and stock — optional AI draft from photo + title hint.
             </p>
             <p className="mt-1 text-xs text-muted">
               Plan: {resolvePlanByCode(subscription?.effectivePlan ?? "basic").name}{" "}
@@ -556,6 +619,60 @@ export default function ProductsPage() {
               {formError}
             </p>
           ) : null}
+
+          <div
+            className={`rounded-2xl border p-4 ring-1 ${
+              aiProductDraftReady === false
+                ? "border-amber-200/90 bg-amber-50/50 ring-amber-100"
+                : "border-orange-200/90 bg-gradient-to-br from-orange-50/90 to-white ring-orange-100/80"
+            }`}
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="text-sm font-semibold text-orange-900">AI listing draft</p>
+                {aiProductDraftReady === null ? (
+                  <p className="text-xs text-stone-500">AI configuration check ho rahi hai…</p>
+                ) : aiProductDraftReady === false ? (
+                  <p className="text-xs leading-relaxed text-amber-950">
+                    AI drafts abhi band hain: server / hosting env mein{" "}
+                    <code className="rounded bg-amber-100/90 px-1 py-0.5 text-[0.65rem]">
+                      OPENAI_API_KEY
+                    </code>{" "}
+                    set karo, phir app dubara deploy / restart karo. Firebase Admin + Firestore bhi API routes
+                    ke liye zaroori hain.
+                  </p>
+                ) : (
+                  <p className="text-xs leading-relaxed text-stone-600">
+                    Roman Urdu tip: Name field mein chota hint likho (optional). Nayi photo lagao, ya{" "}
+                    <strong className="font-semibold text-stone-700">Edit</strong> mode mein pehle se jo Cloudinary
+                    image hai us par bhi vision chal sakti hai. Sab draft editable hai save se pehle — price /
+                    stock tum khud rakho.
+                  </p>
+                )}
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                className="shrink-0 gap-2 border border-orange-200/80 bg-white text-orange-800 shadow-sm hover:border-orange-300 hover:bg-orange-50"
+                disabled={
+                  aiDraftLoading ||
+                  saving ||
+                  aiProductDraftReady !== true ||
+                  (!form.name.trim() && !form.imageFile && !aiHttpsExistingImage)
+                }
+                onClick={() => void runAiDraft()}
+              >
+                <Sparkles className="h-4 w-4 text-orange-600" aria-hidden />
+                {aiDraftLoading ? "Generating…" : "Generate draft"}
+              </Button>
+            </div>
+            {aiDraftError ? (
+              <p className="mt-3 text-xs font-medium text-red-600" role="alert">
+                {aiDraftError}
+              </p>
+            ) : null}
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
               label="Name"
@@ -599,7 +716,7 @@ export default function ProductsPage() {
               required
             >
               <option value="">Select category</option>
-              {CATEGORIES.map((c) => (
+              {PRODUCT_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
@@ -640,10 +757,17 @@ export default function ProductsPage() {
               Click to choose an image
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/gif"
                 className="sr-only"
                 onChange={(e) => {
                   const file = e.target.files?.[0] ?? null;
+                  if (file && file.type && !ALLOWED_PRODUCT_IMAGE_MIMES.has(file.type)) {
+                    setErrors((old) => ({
+                      ...old,
+                      imageFile: "JPEG, PNG, WebP, ya GIF use karo.",
+                    }));
+                    return;
+                  }
                   setForm((old) => ({ ...old, imageFile: file }));
                   if (file) setErrors((old) => ({ ...old, imageFile: undefined }));
                 }}

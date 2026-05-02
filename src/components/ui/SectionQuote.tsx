@@ -20,7 +20,13 @@ export function SectionQuote({ quote, className }: SectionQuoteProps) {
       )}
     >
       <p className="font-heading text-lg italic leading-relaxed text-ink/90 sm:text-xl">
-        “{quote}”
+        <span className="text-secondary" aria-hidden>
+          “
+        </span>
+        {quote}
+        <span className="text-secondary" aria-hidden>
+          ”
+        </span>
       </p>
     </motion.blockquote>
   );

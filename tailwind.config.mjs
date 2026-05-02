@@ -8,13 +8,13 @@ const config = {
   theme: {
     extend: {
       colors: {
-        primary: "#4F46E5",
-        secondary: "#22C55E",
-        accent: "#F59E0B",
-        background: "#F9FAFB",
+        primary: "#C2410C",
+        secondary: "#EA580C",
+        accent: "#FB923C",
+        background: "#FFFBF7",
         surface: "#FFFFFF",
-        ink: "#111827",
-        muted: "#6B7280",
+        ink: "#1C1917",
+        muted: "#78716C",
       },
       boxShadow: {
         soft: "0 4px 24px -4px rgba(17, 24, 39, 0.08), 0 2px 8px -2px rgba(17, 24, 39, 0.04)",
@@ -22,12 +22,7 @@ const config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        heading: [
-          "var(--font-heading)",
-          "Georgia",
-          "Times New Roman",
-          "serif",
-        ],
+        heading: ["var(--font-heading)", "var(--font-sans)", "system-ui", "sans-serif"],
       },
     },
   },

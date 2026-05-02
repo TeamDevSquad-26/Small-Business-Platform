@@ -16,15 +16,29 @@ export function FinalCta() {
         aria-hidden
       />
       <div className="relative mx-auto max-w-4xl text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">
+          Ready to launch
+        </p>
         <h2
           id="final-cta-heading"
-          className="font-heading text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
+          className="mt-3 font-heading text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
         >
           Ready to put your shop in one link?
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
           Create your Karobaar storefront in minutes, or browse shops that are already live.
         </p>
+        <div className="mx-auto mt-5 grid max-w-2xl gap-2.5 text-sm text-ink/90 sm:grid-cols-3">
+          <p className="rounded-xl border border-gray-200/80 bg-white/80 px-3 py-2">
+            Seller onboarding in minutes
+          </p>
+          <p className="rounded-xl border border-gray-200/80 bg-white/80 px-3 py-2">
+            Trust-first buyer checkout
+          </p>
+          <p className="rounded-xl border border-gray-200/80 bg-white/80 px-3 py-2">
+            Built for mobile traffic
+          </p>
+        </div>
         <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4">
           <Link
             href="/signup"

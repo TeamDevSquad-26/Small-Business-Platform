@@ -25,6 +25,7 @@ function LoginForm() {
   const returnUrl = searchParams?.get("returnUrl");
   const { user, isReady, login } = useAuth();
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (isReady && user) {
@@ -80,8 +81,8 @@ function LoginForm() {
             </Link>
           </p>
         </div>
-        <Button variant="primary" className="w-full !py-3" type="submit">
-          Log in
+        <Button variant="primary" className="w-full !py-3" type="submit" disabled={submitting}>
+          {submitting ? "Signing in…" : "Log in"}
         </Button>
         <p className="text-center text-sm text-muted">
           New here?{" "}
@@ -101,8 +102,9 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[50vh] items-center justify-center text-muted">
-          Loading…
+        <div className="mesh-hero flex min-h-screen items-center justify-center px-4 py-12">
+          <div className="h-12 w-12 animate-pulse rounded-2xl bg-orange-200/50" aria-hidden />
+          <span className="sr-only">Loading</span>
         </div>
       }
     >

@@ -1,20 +1,21 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Outfit, Syne } from "next/font/google";
 import { Providers } from "@/components/providers/Providers";
 import "./globals.css";
 
-const inter = Inter({
+/** Geometric sans — readable, slightly rounded; distinct from generic Inter/system stacks. */
+const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
 
-/** Elegant serif for headings — flowing, “joined” letterforms vs plain UI sans. */
-const cormorantHeading = Cormorant_Garamond({
+/** Display sans for titles — wide, confident letterforms that pair with orange brand UI. */
+const syneHeading = Syne({
   subsets: ["latin"],
   variable: "--font-heading",
   display: "swap",
-  weight: ["500", "600", "700"],
+  weight: ["500", "600", "700", "800"],
 });
 
 const siteUrl =
@@ -50,7 +51,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${cormorantHeading.variable}`}
+      className={`${outfit.variable} ${syneHeading.variable}`}
       suppressHydrationWarning
     >
       <body className="font-sans" suppressHydrationWarning>
