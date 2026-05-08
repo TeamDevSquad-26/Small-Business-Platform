@@ -21,6 +21,7 @@ import {
   Plus,
   Pencil,
   ListOrdered,
+  Store,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardShopCard } from "@/components/dashboard/DashboardShopCard";
@@ -222,31 +223,38 @@ export default function DashboardPage() {
 
   if (!isReady) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center text-muted">
-        Loading…
+      <div className="flex min-h-[40vh] items-center justify-center text-stone-500">
+        <span className="h-10 w-10 animate-pulse rounded-2xl bg-orange-200/50" aria-hidden />
+        <span className="sr-only">Loading</span>
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-6 lg:p-8">
+    <div className="p-4 pb-12 md:p-6 md:pb-14 lg:px-8 lg:pb-16">
       <motion.div
         initial="hidden"
         animate="visible"
         variants={staggerContainer}
         className="mx-auto max-w-6xl space-y-8"
       >
-        <motion.div variants={fadeSlideUp}>
-          <h1 className="text-2xl font-bold tracking-tight text-ink md:text-3xl">
-            Welcome back, {firstName}!
+        <motion.div variants={fadeSlideUp} className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-600">
+            Overview
+          </p>
+          <h1 className="font-heading text-2xl font-semibold tracking-tight text-stone-900 md:text-3xl">
+            Welcome back,{" "}
+            <span className="text-orange-600">{firstName}</span>
           </h1>
-          <p className="mt-1 text-muted">
-            Orders and products update here in real time when your shop is set up.
+          <p className="max-w-2xl text-sm leading-relaxed text-stone-600 md:text-base">
+            Orders aur products yahan live update hote hain jab tak shop setup ho. Neeche apni shop card,
+            stats, aur recent orders dikhen ge.
           </p>
         </motion.div>
 
         <motion.div variants={fadeSlideUp}>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-stone-500">
+            <span className="h-1 w-6 rounded-full bg-orange-500" aria-hidden />
             Your shop
           </h2>
           <DashboardShopCard />
@@ -262,7 +270,7 @@ export default function DashboardPage() {
             value={loadingShop ? "…" : shopId ? String(productCount) : "—"}
             hint={shopId ? "Live count" : "Create a shop first"}
             icon={Package}
-            accent="green"
+            accent="orange"
           />
           <StatCard
             variants={fadeSlideUp}
@@ -302,12 +310,15 @@ export default function DashboardPage() {
 
         {caps.lowStockAlerts && shopId ? (
           <motion.div variants={fadeSlideUp}>
-            <Card hover={false} className="border-amber-200 bg-amber-50/70 p-4">
-              <p className="text-sm font-semibold text-amber-900">Low stock alerts</p>
-              <p className="mt-1 text-sm text-amber-800">
+            <Card
+              hover={false}
+              className="border border-amber-200/90 bg-gradient-to-r from-amber-50/90 to-orange-50/40 p-4 ring-1 ring-amber-100/80"
+            >
+              <p className="text-sm font-semibold text-amber-950">Low stock alerts</p>
+              <p className="mt-1 text-sm text-amber-900/90">
                 {lowStockCount > 0
-                  ? `${lowStockCount} products are at low stock (<= 5).`
-                  : "All products are sufficiently stocked."}
+                  ? `${lowStockCount} products low stock par hain (≤ 5 units).`
+                  : "Sab products par stock theek lag rahi hai."}
               </p>
             </Card>
           </motion.div>
@@ -315,22 +326,23 @@ export default function DashboardPage() {
 
         <div className="grid gap-6 lg:grid-cols-3">
           <motion.div variants={fadeSlideUp} className="lg:col-span-2">
-            <Card hover className="overflow-hidden p-0">
-              <div className="flex flex-wrap items-start justify-between gap-2 border-b border-gray-100 px-5 py-4">
+            <Card
+              hover
+              className="overflow-hidden border-orange-100/70 p-0 shadow-[0_12px_40px_-16px_rgba(234,88,12,0.1)]"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-2 border-b border-orange-100/80 bg-gradient-to-r from-orange-50/40 to-white px-5 py-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-ink">
+                  <h2 className="font-heading text-lg font-semibold text-stone-900">
                     Recent orders
                   </h2>
-                  <p className="text-sm text-muted">
-                    Live — newest first
-                  </p>
+                  <p className="text-sm text-stone-600">Live — naye pehle</p>
                 </div>
                 {shopId ? (
                   <Link
                     href="/dashboard/orders"
-                    className="text-sm font-semibold text-secondary hover:underline"
+                    className="text-sm font-semibold text-orange-700 underline-offset-2 hover:text-orange-800 hover:underline"
                   >
-                    View all
+                    Sab dekho
                   </Link>
                 ) : null}
               </div>
@@ -340,13 +352,13 @@ export default function DashboardPage() {
                     Loading…
                   </p>
                 ) : !shopId ? (
-                  <p className="px-5 py-10 text-center text-sm text-muted">
-                    Create a shop to see orders here.{" "}
+                  <p className="px-5 py-10 text-center text-sm text-stone-600">
+                    Orders yahan tab dikhen ge jab shop ban jaye.{" "}
                     <Link
                       href="/dashboard/create-shop"
-                      className="font-semibold text-secondary hover:underline"
+                      className="font-semibold text-orange-700 hover:underline"
                     >
-                      Create shop
+                      Shop create karo
                     </Link>
                   </p>
                 ) : ordersListenerError ? (
@@ -354,14 +366,13 @@ export default function DashboardPage() {
                     {ordersListenerError}
                   </p>
                 ) : recentRows.length === 0 ? (
-                  <p className="px-5 py-10 text-center text-sm text-muted">
-                    No orders yet. Share your shop link so customers can place
-                    orders.
+                  <p className="px-5 py-10 text-center text-sm text-stone-600">
+                    Abhi koi order nahi. Apna shop link share karo taake customers order kar saken.
                   </p>
                 ) : (
                   <table className="w-full min-w-[640px] text-left text-sm">
                     <thead>
-                      <tr className="border-b border-gray-100 bg-gray-50/80 text-xs font-semibold uppercase tracking-wide text-muted">
+                      <tr className="border-b border-orange-100/80 bg-orange-50/50 text-xs font-semibold uppercase tracking-wide text-stone-600">
                         <th className="px-5 py-3">Order</th>
                         <th className="px-5 py-3">Customer</th>
                         <th className="px-5 py-3">Items</th>
@@ -395,12 +406,12 @@ export default function DashboardPage() {
                         return (
                           <tr
                             key={row.id}
-                            className="border-b border-gray-50 transition-colors hover:bg-gray-50/80"
+                            className="border-b border-orange-50/60 transition-colors hover:bg-orange-50/35"
                           >
                             <td className="px-5 py-3 font-mono text-xs text-ink">
                               <Link
                                 href="/dashboard/orders"
-                                className="text-secondary hover:underline"
+                                className="font-medium text-orange-700 hover:text-orange-800 hover:underline"
                               >
                                 {orderRef}
                               </Link>
@@ -430,7 +441,7 @@ export default function DashboardPage() {
                                   )
                                 }
                                 className={cn(
-                                  "max-w-[9rem] rounded-xl border border-gray-200 bg-white px-2 py-1.5 text-xs font-medium text-ink shadow-sm",
+                                  "max-w-[9rem] rounded-xl border border-orange-200/80 bg-white px-2 py-1.5 text-xs font-medium text-stone-900 shadow-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200",
                                   updatingOrderId === row.id && "opacity-60"
                                 )}
                               >
@@ -455,39 +466,58 @@ export default function DashboardPage() {
           </motion.div>
 
           <motion.div variants={fadeSlideUp}>
-            <Card className="h-full">
-              <h2 className="text-lg font-semibold text-ink">Quick actions</h2>
-              <p className="mt-1 text-sm text-muted">
-                Your most-used shortcuts
-              </p>
-              <ul className="mt-5 space-y-2">
+            <Card className="h-full border-orange-100/70 bg-white shadow-[0_12px_36px_-18px_rgba(234,88,12,0.12)]">
+              <h2 className="font-heading text-lg font-semibold text-stone-900">Quick actions</h2>
+              <p className="mt-1 text-sm text-stone-600">Shortcuts — ek click</p>
+              <ul className="mt-5 space-y-2.5">
                 <li>
                   <Link
                     href="/dashboard/products"
-                    className="flex items-center gap-3 rounded-xl border border-gray-100 bg-background px-4 py-3 text-sm font-medium text-ink transition-colors hover:border-secondary/30 hover:bg-secondary/5"
+                    className="flex items-center gap-3 rounded-2xl border border-orange-100 bg-gradient-to-br from-orange-50/50 to-white px-4 py-3 text-sm font-semibold text-stone-900 transition hover:border-orange-200 hover:shadow-sm"
                   >
-                    <Plus className="h-4 w-4 text-secondary" />
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500/12 text-orange-700">
+                      <Plus className="h-4 w-4" aria-hidden />
+                    </span>
                     Add Product
                   </Link>
                 </li>
                 <li>
                   <Link
                     href="/dashboard/create-shop"
-                    className="flex items-center gap-3 rounded-xl border border-gray-100 bg-background px-4 py-3 text-sm font-medium text-ink transition-colors hover:border-secondary/30 hover:bg-secondary/5"
+                    className="flex items-center gap-3 rounded-2xl border border-orange-100 bg-white px-4 py-3 text-sm font-semibold text-stone-900 transition hover:border-orange-200 hover:bg-orange-50/40"
                   >
-                    <Pencil className="h-4 w-4 text-secondary" />
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500/10 text-orange-700">
+                      <Pencil className="h-4 w-4" aria-hidden />
+                    </span>
                     Edit Shop
                   </Link>
                 </li>
                 <li>
                   <Link
                     href="/dashboard/orders"
-                    className="flex items-center gap-3 rounded-xl border border-gray-100 bg-background px-4 py-3 text-sm font-medium text-ink transition-colors hover:border-secondary/30 hover:bg-secondary/5"
+                    className="flex items-center gap-3 rounded-2xl border border-orange-100 bg-white px-4 py-3 text-sm font-semibold text-stone-900 transition hover:border-orange-200 hover:bg-orange-50/40"
                   >
-                    <ListOrdered className="h-4 w-4 text-secondary" />
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500/10 text-orange-700">
+                      <ListOrdered className="h-4 w-4" aria-hidden />
+                    </span>
                     View Orders
                   </Link>
                 </li>
+                {shopId ? (
+                  <li>
+                    <Link
+                      href={`/shops/${shopId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 rounded-2xl border border-dashed border-orange-200 bg-orange-50/30 px-4 py-3 text-sm font-semibold text-orange-900 transition hover:border-orange-300 hover:bg-orange-50/60"
+                    >
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-orange-600 ring-1 ring-orange-100">
+                        <Store className="h-4 w-4" aria-hidden />
+                      </span>
+                      Storefront (new tab)
+                    </Link>
+                  </li>
+                ) : null}
               </ul>
             </Card>
           </motion.div>

@@ -128,7 +128,7 @@ export function Topbar({ onMenuOpen }: TopbarProps) {
   const recentPending = pendingOrders.slice(0, 5);
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 border-b border-gray-100 bg-surface/95 px-4 backdrop-blur-md md:px-6">
+    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 border-b border-orange-100/80 bg-white/90 px-4 shadow-[0_4px_20px_-12px_rgba(234,88,12,0.08)] backdrop-blur-md md:px-6">
       <button
         type="button"
         className="rounded-xl p-2 text-ink hover:bg-gray-100 md:hidden"

@@ -9,14 +9,15 @@ type StatCardProps = HTMLMotionProps<"div"> & {
   value: string;
   hint?: string;
   icon: LucideIcon;
-  accent?: "default" | "green" | "amber" | "indigo";
+  accent?: "default" | "green" | "amber" | "indigo" | "orange";
 };
 
 const accentMap = {
-  default: "bg-gray-100 text-ink",
-  green: "bg-secondary/10 text-secondary",
-  amber: "bg-accent/15 text-amber-700",
-  indigo: "bg-primary/10 text-primary",
+  default: "bg-stone-100 text-stone-800",
+  green: "bg-emerald-500/12 text-emerald-800",
+  amber: "bg-amber-500/15 text-amber-800",
+  indigo: "bg-violet-500/12 text-violet-800",
+  orange: "bg-orange-500/12 text-orange-700",
 };
 
 export function StatCard({
@@ -33,7 +34,7 @@ export function StatCard({
       whileHover={{ y: -2, boxShadow: "0 12px 40px -8px rgba(17, 24, 39, 0.1)" }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       className={cn(
-        "rounded-2xl border border-gray-100 bg-surface p-5 shadow-soft",
+        "rounded-2xl border border-orange-100/60 bg-white p-5 shadow-[0_4px_24px_-4px_rgba(234,88,12,0.06),0_2px_8px_-2px_rgba(28,25,23,0.04)]",
         className
       )}
       {...props}

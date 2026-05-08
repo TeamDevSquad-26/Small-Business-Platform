@@ -45,8 +45,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             className={cn(
               "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
               active
-                ? "bg-secondary/10 text-secondary"
-                : "text-muted hover:bg-gray-50 hover:text-ink"
+                ? "bg-orange-500/10 font-semibold text-orange-800 ring-1 ring-orange-200/80"
+                : "text-stone-600 hover:bg-orange-50/80 hover:text-stone-900"
             )}
           >
             <Icon className="h-5 w-5 shrink-0" strokeWidth={1.75} />
@@ -60,12 +60,15 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   return (
     <>
       {/* Desktop */}
-      <aside className="hidden w-64 shrink-0 border-r border-gray-100 bg-surface md:flex md:flex-col">
-        <div className="border-b border-gray-100 px-4 py-4">
-          <Link href="/" className="text-lg font-bold text-primary">
-            Karobaar
+      <aside className="hidden w-64 shrink-0 border-r border-orange-100/80 bg-white md:flex md:flex-col md:shadow-[4px_0_24px_-12px_rgba(234,88,12,0.06)]">
+        <div className="border-b border-orange-100/70 bg-gradient-to-br from-orange-50/50 to-white px-4 py-4">
+          <Link
+            href="/"
+            className="font-heading text-lg font-semibold tracking-tight text-orange-600 transition hover:text-orange-700"
+          >
+            Karobaar.pk
           </Link>
-          <p className="mt-0.5 text-xs text-muted">Business dashboard</p>
+          <p className="mt-0.5 text-xs text-stone-500">Vendor dashboard</p>
         </div>
         {NavInner}
       </aside>
@@ -84,18 +87,18 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               onClick={onClose}
             />
             <motion.aside
-              className="fixed inset-y-0 left-0 z-[100] flex w-[min(100%,18rem)] flex-col border-r border-gray-100 bg-surface shadow-soft-lg md:hidden"
+              className="fixed inset-y-0 left-0 z-[100] flex w-[min(100%,18rem)] flex-col border-r border-orange-100/80 bg-white shadow-[8px_0_32px_-12px_rgba(234,88,12,0.12)] md:hidden"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 320 }}
             >
-              <div className="flex items-center justify-between border-b border-gray-100 px-4 py-4">
+              <div className="flex items-center justify-between border-b border-orange-100/70 bg-gradient-to-br from-orange-50/50 to-white px-4 py-4">
                 <div>
-                  <span className="text-lg font-bold text-primary">
-                    Karobaar
+                  <span className="font-heading text-lg font-semibold tracking-tight text-orange-600">
+                    Karobaar.pk
                   </span>
-                  <p className="text-xs text-muted">Business dashboard</p>
+                  <p className="text-xs text-stone-500">Vendor dashboard</p>
                 </div>
                 <button
                   type="button"
